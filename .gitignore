@@ -1,4 +1,7 @@
 ## Ignore DS_Store
 ## Ignore OS generated files
-/app/
-/mysql/
+# Ignore content of app but not the app folder
+/app/*
+!/app/
+!/mysql/
+/mysql/*
