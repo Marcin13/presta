@@ -3,5 +3,6 @@
 # Ignore content of app but not the app folder
 /app/*
 !/app/.gitkeep
+!/app/phppsinfo.php
 /mysql/*
 !/mysql/.gitkeep
