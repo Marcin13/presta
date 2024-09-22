@@ -1,0 +1,4 @@
+## Ignore DS_Store
+## Ignore OS generated files
+/app/
+/mysql/

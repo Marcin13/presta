@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-prestashop
+    ports:
+      - "80:80"           # Nginx will expose port 80 to the host system
+      - "443:443"         # Nginx will expose port 443 to the host system
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro    # Use the Nginx config from the nginx directory
+      - ./app:/var/www/html                            # Mount the app folder containing PrestaShop into the container
+    depends_on:
+      - php
+    restart: always
+
+  # php:
+  #   container_name: php-prestashop
+  #   image: php:7.4-fpm
+  #  ## command: "docker-php-ext-install mysqli"
+  #   volumes:
+  #     - ./app:/var/www/html                             # Mount the app folder containing PrestaShop into the container
+  #     - ./php/php.ini:/usr/local/etc/php/php.ini:ro     # Optional: Use your own php.ini config
+  #   ports:
+  #     - "9000:9000"
+  #   restart: always
+  
+  
+
+  php:
+    container_name: php-prestashop
+    build:
+      context: .
+      dockerfile: phpDockerfile
+    volumes:
+      - ./app:/var/www/html                             # Mount the app folder containing PrestaShop into the container
+      - ./php/php.ini:/usr/local/etc/php/php.ini         # Optional: Use your own php.ini config
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mysql
+    restart: always
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-prestashop
+    ports:
+      - "3306:3306"
+    
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
+    restart: always
+  
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-prestashop
+    ports:
+      - 8081:80
+  #  links:
+  #    - some-mysql
+    environment:
+      PMA_HOST: mysql-prestashop
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    volumes:
+      - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
+    restart: always
+    
+    
+volumes:
+  mysql_data:

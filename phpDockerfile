@@ -1,0 +1,107 @@
+# Use the official PHP 8.1 FPM image
+FROM php:8.1-fpm
+
+
+
+# Install basic dependencies
+RUN apt-get update && apt-get install -y \
+    gnupg2 \
+    curl \
+    lsb-release \
+    ca-certificates 
+
+# Install required libraries for PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libicu-dev \
+    libxml2-dev \
+    zlib1g-dev \
+    libcurl4-openssl-dev
+
+# Configure GD extension with Freetype and JPEG support
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# Install PHP extensions (curl, dom, fileinfo, gd, iconv, intl, json, mbstring, openssl, pdo, pdo_mysql, mysqli, simplexml, zip, opcache, bcmath)
+RUN docker-php-ext-install -j$(nproc) curl
+
+RUN docker-php-ext-install -j$(nproc) dom
+
+RUN docker-php-ext-install -j$(nproc) fileinfo
+
+RUN docker-php-ext-install -j$(nproc) gd
+
+RUN docker-php-ext-install -j$(nproc) iconv
+
+RUN docker-php-ext-install -j$(nproc) intl
+
+#RUN docker-php-ext-install -j$(nproc) json
+
+#RUN docker-php-ext-install -j$(nproc) mbstring
+
+#RUN docker-php-ext-install -j$(nproc) openssl
+
+RUN docker-php-ext-install -j$(nproc) pdo
+
+RUN docker-php-ext-install -j$(nproc) pdo_mysql
+
+RUN docker-php-ext-install -j$(nproc) mysqli
+
+RUN docker-php-ext-install -j$(nproc) simplexml
+
+RUN docker-php-ext-install -j$(nproc) zip
+
+RUN docker-php-ext-install -j$(nproc) opcache
+
+RUN docker-php-ext-install -j$(nproc) bcmath
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+RUN chmod -R 777 /var/www/html
+
+
+
+# Set the working directory
+WORKDIR /var/www/html
+
+# Copy your application files
+COPY ./app /var/www/html/
+
+# Create necessary directories if they don't exist
+RUN mkdir -p /var/www/html/var/cache \
+    /var/www/html/var/logs \
+    /var/www/html/img \
+    /var/www/html/mails \
+    /var/www/html/modules \
+    /var/www/html/translations \
+    /var/www/html/upload \
+    /var/www/html/download \
+    /var/www/html/override \
+    /var/www/html/app/config \
+    /var/www/html/app/Resources/translations
+
+# Set permissions for these directories
+RUN chown -R www-data:www-data /var/www/html/var/cache \
+    && chown -R www-data:www-data /var/www/html/var/logs \
+    && chown -R www-data:www-data /var/www/html/img \
+    && chown -R www-data:www-data /var/www/html/mails \
+    && chown -R www-data:www-data /var/www/html/modules \
+    && chown -R www-data:www-data /var/www/html/translations \
+    && chown -R www-data:www-data /var/www/html/upload \
+    && chown -R www-data:www-data /var/www/html/download \
+    && chown -R www-data:www-data /var/www/html/override \
+    && chown -R www-data:www-data /var/www/html/app/config \
+    && chown -R www-data:www-data /var/www/html/app/Resources/translations
+
+
+#USER www-data
+
+
+# Expose the PHP-FPM port
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
