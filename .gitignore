@@ -2,4 +2,6 @@
 ## Ignore OS generated files
 # Ignore content of app but not the app folder
 /app/*
+!/app/
 /mysql/*
+!/mysql
