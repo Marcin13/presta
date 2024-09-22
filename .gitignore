@@ -2,6 +2,6 @@
 ## Ignore OS generated files
 # Ignore content of app but not the app folder
 /app/*
-!/app/
+!/app/.gitkeep
 /mysql/*
-!/mysql
+!/mysql/.gitkeep
