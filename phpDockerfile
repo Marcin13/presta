@@ -59,7 +59,7 @@ RUN docker-php-ext-install -j$(nproc) intl
 
 RUN docker-php-ext-install -j$(nproc) mbstring
 
-RUN docker-php-ext-install -j$(nproc) openssl
+#RUN docker-php-ext-install -j$(nproc) openssl
 
 RUN docker-php-ext-install -j$(nproc) pdo
 
@@ -75,6 +75,10 @@ RUN docker-php-ext-install -j$(nproc) opcache
 
 RUN docker-php-ext-install -j$(nproc) bcmath
 
+RUN docker-php-ext-configure gd --enable-gd --with-freetype=/usr/include/freetype2/ --with-jpeg=/usr/include/
+RUN docker-php-ext-install gd
+RUN docker-php-ext-enable gd
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
 
@@ -87,6 +91,9 @@ WORKDIR /var/www/html
 
 # Copy your application files
 COPY ./app /var/www/html/
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 777 /var/www/html
+
 
 # Create necessary directories if they don't exist
 RUN mkdir -p /var/www/html/var/cache \
