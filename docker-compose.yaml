@@ -1,6 +1,9 @@
 version: '3.8'
 
 services:
+  #################################
+  #             Nginx             #
+  #################################
   nginx:
     image: nginx:latest
     container_name: nginx-prestashop
@@ -9,38 +12,35 @@ services:
       - "443:443"         # Nginx will expose port 443 to the host system
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro    # Use the Nginx config from the nginx directory
-      - ./app:/var/www/html                            # Mount the app folder containing PrestaShop into the container
+      - ./app:/var/www/html
+      - ./nginx/ssl:/etc/ssl/                              # Mount the app folder containing PrestaShop into the container
     depends_on:
       - php
     restart: always
 
-  # php:
-  #   container_name: php-prestashop
-  #   image: php:7.4-fpm
-  #  ## command: "docker-php-ext-install mysqli"
-  #   volumes:
-  #     - ./app:/var/www/html                             # Mount the app folder containing PrestaShop into the container
-  #     - ./php/php.ini:/usr/local/etc/php/php.ini:ro     # Optional: Use your own php.ini config
-  #   ports:
-  #     - "9000:9000"
-  #   restart: always
-  
-  
-
+ 
+  #################################
+  #             PHP8.1            #
+  ################################# 
   php:
     container_name: php-prestashop
     build:
       context: .
       dockerfile: phpDockerfile
     volumes:
-      - ./app:/var/www/html                             # Mount the app folder containing PrestaShop into the container
-      - ./php/php.ini:/usr/local/etc/php/php.ini         # Optional: Use your own php.ini config
+      - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
+      - ./php/php.ini:/usr/local/etc/php/php.ini          
     ports:
       - "9000:9000"
+  
     depends_on:
       - mysql
     restart: always
 
+
+  #################################
+  #             MySQL 5.7         #
+  #################################
   mysql:
     image: mysql:5.7
     container_name: mysql-prestashop
@@ -56,14 +56,15 @@ services:
       - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
     restart: always
   
-  
+
+  #################################
+  #         PhpMyAdmin            #
+  #################################
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin-prestashop
     ports:
       - 8081:80
-  #  links:
-  #    - some-mysql
     environment:
       PMA_HOST: mysql-prestashop
       PMA_PORT: 3306

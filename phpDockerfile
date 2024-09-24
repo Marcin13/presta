@@ -2,7 +2,6 @@
 FROM php:8.1-fpm
 
 
-
 # Install basic dependencies
 RUN apt-get update && apt-get install -y \
     zip\
@@ -12,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates 
 
 # Install required libraries for PHP extensions
+# libonig-dev is needed for oniguruma which is needed for mbstring 
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -19,28 +19,29 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libicu-dev \
     libxml2-dev \
+    libonig-dev \
+    libcurl3-dev \
     zlib1g-dev \
     libcurl4-openssl-dev
 
-# Installing dependencies for the PHP modules
-RUN apt-get update && \
-    apt-get install -y zip curl libcurl3-dev libzip-dev libpng-dev libonig-dev libxml2-dev
-    # libonig-dev is needed for oniguruma which is needed for mbstring
+# # Installing dependencies for the PHP modules
+# RUN apt-get update && \
+#     apt-get install -y  libcurl3-dev libzip-dev libpng-dev libonig-dev libxml2-dev
+#     # libonig-dev is needed for oniguruma which is needed for mbstring
 
-# Installing additional PHP modules
-RUN docker-php-ext-install curl gd mbstring mysqli pdo pdo_mysql xml
+# # Installing additional PHP modules
+# RUN docker-php-ext-install curl gd mbstring mysqli pdo pdo_mysql xml
 
-# Install and configure ImageMagick
-RUN apt-get install -y libmagickwand-dev
-RUN pecl install imagick
-RUN docker-php-ext-enable imagick
-RUN apt-get purge -y libmagickwand-dev
+# # Install and configure ImageMagick
+# RUN apt-get install -y libmagickwand-dev
+# RUN pecl install imagick
+# RUN docker-php-ext-enable imagick
+# RUN apt-get purge -y libmagickwand-dev
 
-# Install Composer so it's available
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Configure GD extension with Freetype and JPEG support
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# # Configure GD extension with Freetype and JPEG support
+# RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
 # Install PHP extensions (curl, dom, fileinfo, gd, iconv, intl, json, mbstring, openssl, pdo, pdo_mysql, mysqli, simplexml, zip, opcache, bcmath)
 RUN docker-php-ext-install -j$(nproc) curl
@@ -49,12 +50,14 @@ RUN docker-php-ext-install -j$(nproc) dom
 
 RUN docker-php-ext-install -j$(nproc) fileinfo
 
-RUN docker-php-ext-install -j$(nproc) gd
+# RUN docker-php-ext-install -j$(nproc) gd
+# # Configure GD extension with Freetype and JPEG support
+# RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
 RUN docker-php-ext-install -j$(nproc) iconv
 
 RUN docker-php-ext-install -j$(nproc) intl
-
+#The JSON extension is bundled and compiled into PHP by default. As of PHP 8.0. 0, the JSON extension is a core PHP extension, so it is always enabled.
 #RUN docker-php-ext-install -j$(nproc) json
 
 RUN docker-php-ext-install -j$(nproc) mbstring
@@ -67,6 +70,8 @@ RUN docker-php-ext-install -j$(nproc) pdo_mysql
 
 RUN docker-php-ext-install -j$(nproc) mysqli
 
+RUN docker-php-ext-install -j$(nproc) xml
+
 RUN docker-php-ext-install -j$(nproc) simplexml
 
 RUN docker-php-ext-install -j$(nproc) zip
@@ -75,9 +80,14 @@ RUN docker-php-ext-install -j$(nproc) opcache
 
 RUN docker-php-ext-install -j$(nproc) bcmath
 
-RUN docker-php-ext-configure gd --enable-gd --with-freetype=/usr/include/freetype2/ --with-jpeg=/usr/include/
+
 RUN docker-php-ext-install gd
+RUN docker-php-ext-configure gd --enable-gd --with-freetype=/usr/include/freetype2/ --with-jpeg=/usr/include/
 RUN docker-php-ext-enable gd
+
+
+# Install Composer so it's available
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
@@ -87,10 +97,10 @@ RUN chmod -R 777 /var/www/html
 
 
 # Set the working directory
-WORKDIR /var/www/html
+WORKDIR //var/www/html
 
 # Copy your application files
-COPY ./app /var/www/html/
+COPY ./app /var/www/html
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 777 /var/www/html
 
