@@ -34,11 +34,7 @@ RUN apk add --no-cache \
     libxml2-dev
 
 
-# Install and configure ImageMagick
-#RUN apk add --no-cache imagemagick-dev \
-    #&& pecl install imagick \
-    #&& docker-php-ext-enable imagick \
-    #&& apk del imagemagick-dev
+
 
  # Install additional PHP modules
 RUN docker-php-ext-install gd
@@ -66,7 +62,37 @@ RUN docker-php-ext-install -j$(nproc) bcmath
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN mkdir -p /var/www/html
+# Install PHP Extensions (igbinary & memcached)
+RUN apk add --no-cache --update libmemcached-libs zlib
+RUN set -xe && \
+    cd /tmp/ && \
+    apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS && \
+    apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev && \
+# Install igbinary (memcached's deps)
+    pecl install igbinary && \
+# Install memcached
+    ( \
+        pecl install --nobuild memcached && \
+        cd "$(pecl config-get temp_dir)/memcached" && \
+        phpize && \
+        ./configure --enable-memcached-igbinary && \
+        make -j$(nproc) && \
+        make install && \
+        cd /tmp/ \
+    ) && \
+# Enable PHP extensions
+    docker-php-ext-enable igbinary memcached && \
+    rm -rf /tmp/* && \
+    apk del .memcached-deps .phpize-deps
+
+# Install Imagick
+
+RUN apk add --update --no-cache --virtual .build-deps $PHPIZE_DEPS autoconf imagemagick imagemagick-dev \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    &&  rm -rf /tmp/pear \
+    && apk del .build-deps
+
 # Set the working directory
 WORKDIR /var/www/html
 
