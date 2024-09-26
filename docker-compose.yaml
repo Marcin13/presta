@@ -36,6 +36,7 @@ services:
     depends_on:
       - mysql
     restart: always
+    entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
 
 
   #################################
@@ -60,18 +61,20 @@ services:
   #################################
   #         PhpMyAdmin            #
   #################################
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin-prestashop
-    ports:
-      - 8081:80
-    environment:
-      PMA_HOST: mysql-prestashop
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    volumes:
-      - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
-    restart: always
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin
+  #   container_name: phpmyadmin-prestashop
+  #   links:
+  #     - mysql-prestashop
+  #   ports:
+  #     - 8081:80
+  #   environment:
+  #     PMA_HOST: mysql-prestashop
+  #     PMA_PORT: 3306
+  #     PMA_ARBITRARY: 1
+  #   volumes:
+  #     - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
+  #   restart: always
     
     
 volumes:
