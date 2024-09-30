@@ -24,9 +24,10 @@ services:
   ################################# 
   php:
     container_name: php-prestashop
+    
     build:
       context: .
-      dockerfile: phpDockerfile
+      dockerfile: php8 .2Dockerfile
     volumes:
       - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
       - ./php/php.ini:/usr/local/etc/php/php.ini          
@@ -38,6 +39,22 @@ services:
     restart: always
     entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
 
+  # php2:
+  #   container_name: php-prestashop-2
+    
+  #   build:
+  #     context: .
+  #     dockerfile: php8.1Dockerfile
+  #   volumes:
+  #     - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
+  #     - ./php/php.ini:/usr/local/etc/php/php.ini          
+  #   ports:
+  #     - "9002:9000"
+  
+  #   depends_on:
+  #     - mysql
+  #   restart: always
+  #   entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
 
   #################################
   #             MySQL 5.7         #

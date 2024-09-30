@@ -14,18 +14,24 @@ http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
 
-    
+    # Define an upstream group with multiple PHP-FPM servers
+    # upstream php_fpm_backend {
+    #     least_conn; # Load balancing method, can also use 'round-robin' or 'ip_hash'
+        
+    #     server php-prestashop-1:9001; # First PHP-FPM server
+    #     server php-prestashop-2:9002; # Second PHP-FPM server
+   # }
     server {
         # IPv4.
         listen 80;
-        listen 443 ssl http2;
+        listen 443 ssl http2;                # Use http2 directive separately    
 
         # IPv6.
         # listen [::]:80;
         # listen [::]:443 ssl http2;
 
         # [EDIT] Your domain name(s) go here.
-        server_name bartek.local 10.10.1.127;
+        server_name 10.10.1.127;
 
         # [EDIT] Path to your domain Nginx logs.
         # more details: https://docs.nginx.com/nginx/admin-guide/monitoring/logging/#setting-up-the-access-log
@@ -34,8 +40,11 @@ http {
         error_log /var/log/nginx/example.com-error.log info;
 
         # [EDIT] Path to your SSL certificates (take a look at Certbot https://certbot.eff.org).
-        ssl_certificate /etc/ssl/fullchain.pem;
-        ssl_certificate_key /etc/ssl/privkey.pem;
+        # Run the following command to generate a self-signed certificate:
+        # mkdir -p /etc/ssl
+        # openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/privkey.pem -out /etc/ssl/fullchain.pem
+         ssl_certificate /etc/ssl/fullchain.pem;
+         ssl_certificate_key /etc/ssl/privkey.pem;
 
         # [EDIT] Path to your PrestaShop directory.
         root /var/www/html;
@@ -48,7 +57,43 @@ http {
 
         # Redirect 404 errors to PrestaShop.
         error_page 404 /index.php?controller=404;
+        ###########################################################################################
 
+        gzip on;
+        gzip_disable "msie6";
+
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_min_length 1000;
+        gzip_types
+            application/atom+xml
+            application/geo+json
+            application/javascript
+            application/json
+            application/ld+json
+            application/manifest+json
+            application/rdf+xml
+            application/rss+xml
+            application/x-javascript
+            application/xhtml+xml
+            application/xml
+            font/eot
+            font/otf
+            font/ttf
+            image/svg+xml
+            text/css
+            text/javascript
+            text/plain
+            text/xml;
+        #Enabling browser caching for images, CSS and JS files
+        location ~* \.(?:css|eot|gif|ico|jpe?g|otf|png|ttf|woff2?)$ {
+            expires 1M;
+            add_header Cache-Control "public";
+            }
+
+
+        ############################################################################################
         # HSTS (Force clients to interact with your website using HTTPS only).
         # For enhanced security, register your site here: https://hstspreload.org/.
         # WARNING: Don't use this if your site is not fully on HTTPS!
@@ -100,7 +145,7 @@ http {
 
         # [EDIT] Replace 'admin-dev' in this block with the name of your admin directory.
         location /admin713sqrblom5fzosubkr/ {
-            try_files $uri $uri/ /admin713sqrblom5fzosubkr/index.php$is_args$args;
+            try_files $uri $uri/ /admin-dev/index.php$is_args$args;
         }
 
 
@@ -143,21 +188,25 @@ http {
 
             # Environment variables for PHP.
             include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME $request_filename;
+            ##bymy fastcgi_param SCRIPT_FILENAME $request_filename;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
 
             fastcgi_index index.php;
 
             fastcgi_keep_conn on;
-            fastcgi_read_timeout 180s;
-            fastcgi_send_timeout 180s;
+            fastcgi_read_timeout 60s;
+            fastcgi_send_timeout 60s;
 
             # Uncomment these in case of long loading or 502/504 errors.
-              fastcgi_buffer_size 256k;
-              fastcgi_buffers 256 16k;
-              fastcgi_busy_buffers_size 256k;
+            fastcgi_buffer_size 256k;
+            fastcgi_buffers 256 16k;
+            fastcgi_busy_buffers_size 256k;
 
             # [EDIT] Connection to PHP-FPM unix domain socket.
              fastcgi_pass php-prestashop:9000;
+            #fastcgi_pass upbeat_golick:9000;
+            #fastcgi_pass php_fpm_backend; # Use the defined upstream group
         }
-}
-        }
+    }
+        }    

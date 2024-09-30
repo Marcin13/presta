@@ -1,0 +1,57 @@
+FROM php:8.1-fpm
+#RUN docker-php-source extract \
+	# do important things \
+#	&& docker-php-source delete
+
+# Install ImageMagick and imagick extension on Debian/Ubuntu
+RUN apt-get update && apt-get install -y \
+    imagemagick \
+    libmagickwand-dev \
+    libgomp1 \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    pkg-config \
+	zip \
+    gnupg \
+    curl \
+    lsb-release \
+    ca-certificates \
+    #libpng \
+    #libjpeg-turbo-dev \
+    #freetype-dev \
+    libzip-dev \
+    #icu-dev \
+    libxml2-dev \
+    libonig-dev \
+    pkg-config \
+    #curl-dev \
+    #zlib-dev\ 
+	&& docker-php-ext-configure gd --with-freetype --with-jpeg \
+	&& docker-php-ext-install -j$(nproc) gd curl dom fileinfo intl mbstring pdo pdo_mysql mysqli xml simplexml zip opcache bcmath
+
+
+RUN apt-get update && apt-get install -y libmemcached-dev libssl-dev zlib1g-dev \
+	&& pecl install memcached-3.2.0 \
+	&& docker-php-ext-enable memcached   
+
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+
+RUN mkdir -p /var/www/html
+# Set the working directory
+WORKDIR /var/www/html
+RUN chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html
+
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
