@@ -17,6 +17,8 @@ services:
     depends_on:
       - php
     restart: always
+    networks:
+      - internal
 
  
   #################################
@@ -27,7 +29,7 @@ services:
     
     build:
       context: .
-      dockerfile: php8 .2Dockerfile
+      dockerfile: php8.2Dockerfile
     volumes:
       - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
       - ./php/php.ini:/usr/local/etc/php/php.ini          
@@ -38,23 +40,27 @@ services:
       - mysql
     restart: always
     entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
+    networks:
+      - internal  
 
-  # php2:
-  #   container_name: php-prestashop-2
+  php1:
+    container_name: php-prestashop-1
     
-  #   build:
-  #     context: .
-  #     dockerfile: php8.1Dockerfile
-  #   volumes:
-  #     - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
-  #     - ./php/php.ini:/usr/local/etc/php/php.ini          
-  #   ports:
-  #     - "9002:9000"
+    build:
+      context: .
+      dockerfile: php8.2Dockerfile
+    volumes:
+      - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
+      - ./php/php.ini:/usr/local/etc/php/php.ini          
+    ports:
+      - "9001:9000"
   
-  #   depends_on:
-  #     - mysql
-  #   restart: always
-  #   entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
+    depends_on:
+      - mysql
+    restart: always
+    entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
+    networks:
+      - internal
 
   #################################
   #             MySQL 5.7         #
@@ -73,6 +79,8 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
     restart: always
+    networks:
+      - internal  
   
 
   #################################
@@ -93,6 +101,10 @@ services:
   #     - ./mysql/data:/var/lib/mysql                     # Persist MySQL data into the mysql directory
   #   restart: always
     
-    
+
+networks:
+  internal:
+    driver: bridge
+
 volumes:
   mysql_data:
