@@ -29,34 +29,31 @@ services:
     
     build:
       context: .
-      dockerfile: php8.2Dockerfile
+      dockerfile: php8.1Dockerfile
     volumes:
       - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
       - ./php/php.ini:/usr/local/etc/php/php.ini          
     ports:
       - "9000:9000"
   
-    depends_on:
-      - mysql
     restart: always
     entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
     networks:
       - internal  
 
   php1:
-    container_name: php-prestashop-1
+    container_name: php-prestashop1
     
     build:
       context: .
-      dockerfile: php8.2Dockerfile
+      dockerfile: php8.1Dockerfile
     volumes:
       - ./app:/var/www/html                              # Mount the app folder containing PrestaShop into the container
-      - ./php/php.ini:/usr/local/etc/php/php.ini          
+      - ./php/php.ini:/usr/local/etc/php/php.ini 
+     # - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf         
     ports:
       - "9001:9000"
   
-    depends_on:
-      - mysql
     restart: always
     entrypoint: ["/bin/sh", "-c", "chown -R www-data:www-data /var/www/html && chmod -R 777 /var/www/html && php-fpm"]
     networks:
